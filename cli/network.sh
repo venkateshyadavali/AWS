@@ -49,4 +49,48 @@ aws ec2 create-route-table --vpc-id vpc-014cade991b55f2bf
 aws ec2 create-route --route-table-id rtb-0300a162986101b58 --destination-cidr-block 0.0.0.0/0 --gateway-id igw-02ea0c3e681d3c7be
 
 # Add tag to route table
+# Since this route table is connected to internet gateway, this would be public route table
 aws ec2 create-tags --resources rtb-0300a162986101b58 --tags Key=Name,Value=public
+
+# Add two subnets (web, management) to this public Route Table (associate-route-table)
+aws ec2 associate-route-table --route-table-id rtb-0300a162986101b58 --subnet-id subnet-04b1f626a27c24cdb
+    #"AssociationId": "rtbassoc-05535bd85b36c9b4a"
+aws ec2 associate-route-table --route-table-id rtb-0300a162986101b58 --subnet-id subnet-0ca3b0d5553b108e2
+    #"AssociationId": "rtbassoc-05ed3f5f11c771320"
+
+
+#--------------
+# Create another Route Table for Private
+aws ec2 create-route-table --vpc-id vpc-014cade991b55f2bf
+        #"RouteTableId": "rtb-0cbd259c8b01e29c5",
+
+# Add tag to the route table as private
+aws ec2 create-tags --resources rtb-0cbd259c8b01e29c5 --tags Key=Name,Value=private
+
+# Add two subnets (web, management) to this private Route Table (associate-route-table)
+aws ec2 associate-route-table --route-table-id rtb-0cbd259c8b01e29c5 --subnet-id subnet-05c6a4a081f81c296
+    #"AssociationId": "rtbassoc-03a6da9dba05c8a39"
+aws ec2 associate-route-table --route-table-id rtb-0cbd259c8b01e29c5 --subnet-id subnet-0ef02aa2334760214
+    #"AssociationId": "rtbassoc-0a651622addbc5c45"
+
+
+#aws ec2 replace-route-table-association --association-id rtbassoc-0a651622addbc5c45 --route-table-id rtb-0cbd259c8b01e29c5
+#    "NewAssociationId": "rtbassoc-0a651622addbc5c45"
+
+
+#---------------------------------------------------
+# Create Security Group
+aws ec2 create-security-group --group-name allowsshhttp --description "Allow ssh, http and https" --vpc-id vpc-014cade991b55f2bf 
+	#"GroupId": "sg-041d57332c58f5442"
+
+# Add Inbound rules
+# authorize-security-group-ingress
+aws ec2 authorize-security-group-ingress --group-id "sg-041d57332c58f5442" --protocol "tcp" --cidr "0.0.0.0/0" --port "22"
+aws ec2 authorize-security-group-ingress --group-id "sg-041d57332c58f5442" --protocol "tcp" --cidr "0.0.0.0/0" --port "80"
+aws ec2 authorize-security-group-ingress --group-id "sg-041d57332c58f5442" --protocol "tcp" --cidr "0.0.0.0/0" --port "443"
+
+# Adding same above ingres security group rules in one line
+
+#---------------------------------------------------
+#Create a EC2 machine
+
